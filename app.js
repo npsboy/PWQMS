@@ -12,7 +12,7 @@
   var REFRESH_MS = 20000;   // channel updates roughly every 15s
   var RAW_POINTS = 100;     // entries pulled for the fallback sparkline
   var MAX_POINTS = 30;      // sparkline is downsampled to at most this many
-  var ZOOM       = 13.5;
+  var ZOOM       = 17;
   var GEOCODE    = true;    // reverse-geocode the buoy fix via OSM Nominatim
 
   // field1/2/3 as defined on the channel, paired with the design's labels
