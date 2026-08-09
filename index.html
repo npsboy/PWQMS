@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Parikrama · Water Quality Monitoring System</title>
+<meta name="description" content="Live water quality telemetry — temperature, pH and clarity — from buoy P-01." />
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<div class="sheet">
+
+  <!-- ============ header ============ -->
+  <header class="masthead">
+    <div class="brand">
+      <h1>Parikrama</h1>
+      <p>Water Quality Monitoring System</p>
+    </div>
+    <div class="place">
+      <h2 id="place">Upper Lake, Bhopal</h2>
+      <p>Buoy P-01 · <span id="detail">locating…</span> · <span id="ago" class="pending">connecting…</span></p>
+    </div>
+  </header>
+
+  <!-- ============ map + metrics ============ -->
+  <section class="stage">
+
+    <div class="cell map-cell" data-marks>
+      <div id="map"></div>
+      <div class="coords"><i></i><span id="coords">awaiting fix…</span></div>
+    </div>
+
+    <div class="metrics">
+
+      <div class="cell metric" data-marks>
+        <div class="tag">
+          <!-- thermometer over waves -->
+          <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+               stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6.6 8.9V3.1a1.4 1.4 0 0 1 2.8 0v5.8a3 3 0 1 1-2.8 0Z"/>
+            <path d="M1 13.6c.9-.8 1.7-.8 2.6 0M12.4 13.6c.9-.8 1.7-.8 2.6 0"/>
+          </svg>
+          Water Temperature
+        </div>
+        <div class="val"><b id="v-temp">—</b><i>°C</i></div>
+      </div>
+
+      <div class="cell metric" data-marks>
+        <div class="tag">
+          <!-- droplet -->
+          <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+               stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M8 1.6 3.9 6.9a5.1 5.1 0 1 0 8.2 0L8 1.6Z"/>
+          </svg>
+          pH Level
+        </div>
+        <div class="val"><b id="v-ph">—</b><i>pH</i></div>
+      </div>
+
+      <div class="cell metric" data-marks>
+        <div class="tag">
+          <!-- clarity ripples -->
+          <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+               stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M1 4.6c1.2-1.2 2.3-1.2 3.5 0s2.3 1.2 3.5 0 2.3-1.2 3.5 0 2.3 1.2 3.5 0"/>
+            <path d="M1 8c1.2-1.2 2.3-1.2 3.5 0s2.3 1.2 3.5 0 2.3-1.2 3.5 0 2.3 1.2 3.5 0"/>
+            <path d="M1 11.4c1.2-1.2 2.3-1.2 3.5 0s2.3 1.2 3.5 0 2.3-1.2 3.5 0 2.3 1.2 3.5 0"/>
+          </svg>
+          Water Clarity
+        </div>
+        <div class="val"><b id="v-clar">—</b><i>%</i></div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============ trends ============ -->
+  <section class="trends">
+    <h3 id="trend-title">Trends · Last 7 days</h3>
+    <div class="charts" id="charts"></div>
+  </section>
+
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
