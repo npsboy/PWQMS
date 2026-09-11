@@ -9,7 +9,8 @@
 
   var CHANNEL    = '3445217';
   var READ_KEY   = 'WKZ0J93CK363A0K8';
-  var REFRESH_MS = 20000;   // channel updates roughly every 15s
+  var REFRESH_MS = 5000;   // poll every 5s
+  var GPS_STALE_MS = 30 * 60 * 1000;   // beyond this, show map grayscale as "last known location"
   var RAW_POINTS = 100;     // entries pulled for the fallback sparkline
   var MAX_POINTS = 30;      // sparkline is downsampled to at most this many
   var ZOOM       = 17;
@@ -63,8 +64,13 @@
   }).addTo(map);
 
   var located = false;
+  var gpsStamp = null;   // created_at of the most recent GPS fix
 
-  function placeBuoy(lat, lng) {
+  // no fix yet at all — start grayscale until proven otherwise
+  // (the coords pill already says "no GPS fix", so gps-time stays empty/hidden)
+  document.querySelector('.map-cell').classList.add('stale-location');
+
+  function placeBuoy(lat, lng, at_time) {
     var at = L.latLng(lat, lng);
     buoy.setLatLng(at).setOpacity(1);
 
@@ -79,7 +85,25 @@
       Math.abs(lat).toFixed(4) + '° ' + (lat >= 0 ? 'N' : 'S') + ', ' +
       Math.abs(lng).toFixed(4) + '° ' + (lng >= 0 ? 'E' : 'W');
 
+    gpsStamp = at_time || gpsStamp;
+    updateGpsFreshness();
+
     reverseGeocode(lat, lng);
+  }
+
+  function updateGpsFreshness() {
+    var mapCell = document.querySelector('.map-cell');
+    var gpsTime = $('gps-time');
+    if (!gpsStamp) return;
+
+    var age = Date.now() - new Date(gpsStamp).getTime();
+    var stale = age > GPS_STALE_MS;
+
+    if (mapCell) mapCell.classList.toggle('stale-location', stale);
+    if (gpsTime) {
+      gpsTime.textContent = (stale ? 'Last known location · ' : 'GPS ') + relative(gpsStamp).replace(/^Updated /, 'updated ');
+      gpsTime.classList.toggle('stale', stale);
+    }
   }
 
   /* ================= reverse geocoding (place name) ================= */
@@ -194,7 +218,7 @@
       var la = parseFloat(feeds[i].latitude);
       var lo = parseFloat(feeds[i].longitude);
       // ThingSpeak reports 0,0 for "no fix" as well as null
-      if (isFinite(la) && isFinite(lo) && (la !== 0 || lo !== 0)) return [la, lo];
+      if (isFinite(la) && isFinite(lo) && (la !== 0 || lo !== 0)) return [la, lo, feeds[i].created_at];
     }
     return null;
   }
@@ -240,6 +264,7 @@
   var lastStamp = null;
 
   function tick() {
+    updateGpsFreshness();
     var ago = $('ago');
     if (!lastStamp || ago.classList.contains('err')) return;
     ago.textContent = relative(lastStamp);
@@ -285,10 +310,16 @@
       // ---- location ----
       var fix = latestFix(raw);
       if (fix) {
-        placeBuoy(fix[0], fix[1]);
+        placeBuoy(fix[0], fix[1], fix[2]);
       } else if (!located) {
+        // never had a fix at all — nothing to fall back to
         $('coords').textContent = 'no GPS fix';
         $('detail').textContent = res[0].channel.name || 'unknown location';
+        $('gps-time').textContent = '';
+        document.querySelector('.map-cell').classList.add('stale-location');
+      } else {
+        // had a fix before, none in this batch — keep showing the last known one
+        updateGpsFreshness();
       }
 
       // ---- trends: prefer daily averages, fall back to raw entries ----

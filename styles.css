@@ -97,9 +97,17 @@ body{
 
 #map{ position:absolute; inset:0; background:#f4f4f2; }
 
-/* desaturate only the tiles — overlays stay in colour */
+/* tiles render in colour while the GPS fix is fresh; once it's stale
+   (older than 30 min) the whole map desaturates to signal "last known
+   location" rather than a live position */
 .leaflet-tile-pane{
+  transition:filter .4s ease;
+}
+.map-cell.stale-location .leaflet-tile-pane{
   filter:grayscale(1) contrast(0.92) brightness(1.07);
+}
+.map-cell.stale-location .buoy{
+  filter:grayscale(1);
 }
 
 .leaflet-container{
@@ -136,6 +144,25 @@ body{
   background:var(--accent);
   flex:none;
 }
+
+/* GPS freshness label pinned inside the map */
+.gps-time{
+  position:absolute;
+  right:14px; bottom:16px;
+  z-index:600;
+  background:rgba(255,255,255,.94);
+  border:1px solid var(--line);
+  padding:7px 11px;
+  font-size:10.5px;
+  color:#4a4a46;
+  letter-spacing:0.01em;
+  white-space:nowrap;
+}
+.gps-time.stale{
+  color:#8a8a84;
+  font-style:italic;
+}
+.gps-time:empty{ display:none; }
 
 /* buoy marker */
 .buoy{ position:relative; }
