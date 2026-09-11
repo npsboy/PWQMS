@@ -213,14 +213,35 @@
     return null;
   }
 
+  // ~11m tolerance — treats repeated transmissions of the same fix as unchanged
+  var SAME_FIX_EPS = 0.0001;
+
   function latestFix(feeds) {
-    for (var i = feeds.length - 1; i >= 0; i--) {
+    var i;
+    for (i = feeds.length - 1; i >= 0; i--) {
       var la = parseFloat(feeds[i].latitude);
       var lo = parseFloat(feeds[i].longitude);
       // ThingSpeak reports 0,0 for "no fix" as well as null
-      if (isFinite(la) && isFinite(lo) && (la !== 0 || lo !== 0)) return [la, lo, feeds[i].created_at];
+      if (isFinite(la) && isFinite(lo) && (la !== 0 || lo !== 0)) break;
     }
-    return null;
+    if (i < 0) return null;
+
+    var la = parseFloat(feeds[i].latitude);
+    var lo = parseFloat(feeds[i].longitude);
+    var at = feeds[i].created_at;
+
+    // the device may resend the same fix on every entry — the true "last
+    // update" is when this coordinate first appeared in this unbroken run,
+    // not the timestamp of the most recent repeat of it
+    for (var j = i - 1; j >= 0; j--) {
+      var jla = parseFloat(feeds[j].latitude);
+      var jlo = parseFloat(feeds[j].longitude);
+      if (!isFinite(jla) || !isFinite(jlo)) break;
+      if (Math.abs(jla - la) > SAME_FIX_EPS || Math.abs(jlo - lo) > SAME_FIX_EPS) break;
+      at = feeds[j].created_at;
+    }
+
+    return [la, lo, at];
   }
 
   function numbers(feeds, key) {
